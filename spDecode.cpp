@@ -123,10 +123,7 @@ void decode(string& fileName,vs& opt){
 				printf("start:%d last:%d\n",start,last);
 				throw "last should be greater than start";
 			}
-			if(last > fileSize){
-				printf("start:%d last:%d\n",start,last);
-				throw "last should be smaller than or equal to fileSize";
-			}
+			if(last > fileSize) last=fileSize;
 			orderList.push_back(pair<int,int>(start,last));
 		}
 	}
