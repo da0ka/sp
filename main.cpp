@@ -16,26 +16,28 @@ int main(int argc, char * argv[]){
 		if(argc == 2){
 			string argv1(argv[1]);
 			if(argv1 == "-h"){
-				printf("sp %s(2004-11-13)\n",VERSION);
-				printf("usage:  sp e [-i] fileName\n");
-				printf("        sp d [-acps] fileName.d\n");
-				printf(" -i    interval of InSta. default is 256\n");
-				printf(" -a    decompress all data\n");
-				printf(" -c    set stdout as output\n");
-				printf(" -p    partially decompress following filename.dlist\n"
-					   "       filename.dlist consists of start and end pair. For example,\n"
-					   "       100 150\n"
-					   "       20000 20010\n");
-				printf(" -sN-M partially decompress from Nbyte to Mbyte.\n"
-					   "       Default is N=0, M=fileSize\n"
-					   " -sN:L partially decompress from Nbyte to (N+L)byte.\n"
-					   "--- example ---\n"
-					   " sp e -i64 abcd     (compress abcd and make abcd.d interval is 64.)\n"
-					   " sp d -a abcd.d     (decompress all. Result saves to abcd.dtest)\n"
-					   " sp d -s10000-11000 (decompress from 10000byte to 10999byte)\n"
-					   " sp d -s10000:2000  (decompress from 10000byte to 11999byte)\n"
-					   " sp d -s-10000      (decompress from 0byte to 9999byte)\n"
-					   " sp d -s50000-      (decompress from 50000byte to EOF)\n");
+				printf("sp %s(2004-11-13)\n"
+				"usage: sp e [-i] fileName\n"
+				"       sp d [-acps] fileName.d\n"
+				" -i    interval of compression. default is 256\n"
+				"       low: partial decompression without extra decompression"
+				"       high:better compression ratio"
+				" -a    decompress all data\n"
+				" -c    set stdout as output\n"
+				" -p    partially decompress following filename.dlist\n"
+				"       filename.dlist consists of start and end pair. For example,\n"
+				"       100 150\n"
+				"       20000 20010\n"
+				" -sN-M partially decompress from Nbyte to Mbyte.\n"
+				"       Default is N=0, M=fileSize\n"
+				" -sN:L partially decompress from Nbyte to (N+L)byte.\n"
+				"--- example ---\n"
+				" sp e -i64 abcd     (compress abcd and make abcd.d interval is 64)\n"
+				" sp d -a abcd.d     (decompress all. Result saves to abcd.d.tes)\n"
+				" sp d -s10000-11000 (decompress from 10000 byte to 10999 byte)\n"
+				" sp d -s10000:2000  (decompress from 10000 byte to 11999 byte)\n"
+				" sp d -s-10000      (decompress from 0 byte to 9999 byte)\n"
+				" sp d -s50000-      (decompress from 50000 byte to EOF)\n",VERSION);
 				return 0;
 			}
 		}
