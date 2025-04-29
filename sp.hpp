@@ -71,7 +71,7 @@ struct node{
 	bool mearged;		//is it mearged
 	bool used;			//is it used at coding
 	bool initialized;	//is it initialized
-	int	 meargedNumber;	//number of mearged node
+	int meargedNumber;	//number of mearged node
 
 	float kl_divergence(node* par);
 	float kl_divergence2(node* par);
@@ -136,6 +136,7 @@ public:
 		if(freq == 0) throw "freq allocate error";
 		freq2 = new int[0x100 * 0x100];
 		if(freq2 == 0) throw "freq2 allocate error";
+		if(interval>fileSize) interval=fileSize;
 	}
 	~eModel(){
 		if(buf) delete[] buf;
