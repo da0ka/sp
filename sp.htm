@@ -1,1 +1,159 @@
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=Shift_JIS"><title>SP partial decodable compression</title><style type="text/css">.box{	font-size: 14px;	border-top-width:1px;	border-top-style:solid;	border-top-color:#FF9966;	width:600px}</style></head><body><h1>SP<br>partial decodable compression</h1><p>Daisuke Okanohara<br>VZV05226@nifty.com</p><h3>�V�����</h3><table width="75%">	<tr>		<td class=box>2004/11/28�@sp v0.2(WindowsXP)<br>			�@�@�@�@�@�@�@�@ �g�pmemory�̈�����P�B<br>			2004/11/15�@source code���J<br>			�@�@�@�@�@�@�@�@ ���ӎ�����source code�Ɋւ������ǉ�<br>			2004/11/14�@site���J<br>			�@�@�@�@�@�@�@�@�@sp v0.1(WindowsXP)�@���J</td>	</tr></table><h3>SP�Ƃ�</h3><table width="75%">	<tr>		<td class=box><p>SP��Static PPM��p����Data���kprogram�ł��B<br>				�]����Data���k�@�Ɣ�r�����̓���������܂��B</p>			<ul>				<li>�S�̂𕜌������ɔC�ӂ̕����݂̂𕜌��\</li>				<li>�傫��File�ɑ΂��Ĉ��k����bzip�Ɠ����x�B������File�ł�gzip�Ɠ����x�B</li>				<li>���������̌v�Z�ʁA�̈�ʂ͏]���̍����k���̎�@(BWT��PPM)�Ɣ�r���ď�����</li>			</ul>			</td>	</tr></table><h3>���ӎ���</h3><table width="75%">	<tr>		<td height=30 class=box><p>SP�͌����ړI�ɊJ�����ꂽ���߁A��ʓI�Ȉ��ksoftware�Ƃ��Ă̗��p�͑z�肵�Ă��܂���B���̂��߁A���k����File�������ł��Ȃ��\����ň��̏ꍇFile�����������\��������܂��B������<strong>�����ړI�ȊO�ŗ��p���Ȃ��ł��������B�{program(SP)�𗘗p�������Ƃɂ�萶���������Ȃ鑹�Q�ɑ΂��Ă���҂͐ӔC�𕉂��܂���B</strong>���������������B</p>			<p>�܂��Asource code��compile���A���삳�������ʂɑ΂��Ă���҂͈�ؐӔC�����܂���Bsource code�͎��R�ɉ��ρA���p���Ă��������č\���܂���B���p���p�������R�ɂ��Ă��������č\���܂��񂪂��̏ꍇ��(VZV05226@nifty.com)�ɘA�������������B(source code�����̓������⒘�쌠��N�Q���Ă��邩�ǂ����ɂ��Ă͈ꉞ���ӂ𕥂��Ă��܂����A�Ȃ��Ƃ����m�؂͂���܂���)</p></td>	</tr></table><h3>�X�V����</h3><table width="75%">	<tr>		<td height=130 class=box>			<table width="75%">				<tr class=box>					<td width=33>v0.2�@</td>					<td width=563> ���k����Static Model����������ꍇ�ɂ́A���������I���������Model��ۑ����p������悤�ɂ����B						��������Static Model����������ꍇ�ɂ́A�����̒S���͈͂̕������I�����Model�������p������悤�ɂ����B</td>				</tr>				<tr class=box>					<td height=44>v0.1</td>					<td> Initial Release</td>				</tr>			</table>		</td>	</tr></table><h3>Download</h3><table width="75%">	<tr>		<td class=box> v0.2 <a href="software/sp0.2.exe">sp.exe</a>�@�@�@(Windows XP)<br>			�@�@�@<a href="software/sp_src0.2.zip">sp_src.zip</a>�@Visual Studio C++ .NET2003(Windows			XP)�ł�compile�m�F<br>�@�@�@�@�@�@�@�@�@�@TurboLinux(LINUX Kernel2.6)���compile������m�F�ς�<br> <br>			v0.1 <a href="software/sp0.1.exe">sp.exe</a>�@�@�@(Windows XP)<br>			�@�@�@<a href="software/sp_src0.1.zip">sp_src.zip</a>�@ Visual Studio C++ .NET2003(Windows XP)�ł�compile�m�F<br>			�@�@�@�@�@�@�@ �@�@�@TurboLinux(LINUX Kernel2.6)���compile������m�F�ς�<br> </td>	</tr></table><h3>���p���@</h3><table width="75%">	<tr>		<td class=box> <p>(sp -h�@�Ŋm�F�ł��܂��B )</p>			<p><strong>File�����k����<br>e</strong></p>			<blockquote>				<p>sp e abc.txt</p>			</blockquote>			<p>&gt;&gt; abc.txt�����k���Aabc.txt.d�ɕۑ����܂��B</p>			<p><strong>File��S����������<br>d -a</strong></p>			<blockquote>				<p>sp d -a abc.txt.d</p>			</blockquote>			<p>&gt;&gt; abc.txt.d�𕜌����Aabc.txt.d.tes�ɕ������܂��B(abc.txt��abc.txt.d.tes�͓�����e�ɂȂ�܂�)</p>			<p><strong>File�𕔕���������(1)<br>d -sSTART:LENGTH</strong></p>			<blockquote>				<p>sp d -s1000:10 abc.txt.d</p>			</blockquote>			<p>&gt;&gt; abc.txt.d��1000byte�ڂ���10byte�����������Aabc.txt.d.tes�ɕۑ����܂��B</p>			<p><strong>File�𕔕���������(2)<br>d -sSTART-END</strong></p>			<blockquote>				<p>sp d -s1000-1200 abc.txt.d</p>			</blockquote>			<p>&gt;&gt; abc.txt.d��1000byte�ڂ���1199byte�܂�200byte�����������Aabc.txt.d.tes�ɕۑ����܂��B</p>			<blockquote>				<p>sp d -s1000- abc.txt.d<br>sp d -s-1000 abc.txt.d</p>			</blockquote>			<p>&gt;&gt; -s��2�̐����̂ǂ��炩���ȗ������ꍇ�ASTART=0�AEND=File�̎ڂ�����܂��B<br>�@�@���̏�̗�̏ꍇ1000byte�ڂ���EOF�܂ŁA���̗�̏ꍇ�ŏ�����999byte�܂ŕ����������܂��B</p>			</td>	</tr></table><h3>feedback�Ȃ�</h3><table width="75%">	<tr>		<td class=box>			<p>�s����������ꍇ(�����_�ł͂܂��������񂠂�܂���)�₲�ӌ��Ȃǂ��������܂�����A�ȉ��̘A����������͌f���ɘA��������������ƍK���ł��B</p>			<p>VZV05226@nifty.com (mail)<br>				<a href="https://web.archive.org/web/20050121045908/http://6557.teacup.com/comp/bbs">BBS</a></p>	</tr></table><h3>����̗\��</h3><table width="75%">	<tr>		<td height=284 class=box>			<p>�D�掖�����ɕ���ł��܂�</p>			<ul>				<li>UNIX�ȂǑ��̊��ւ̑Ή�</li>				<li>�s����Ԃ�(�������������Ԃ悤�ȓ����byte��ł��܂������Ȃ����Ƃ��m�F����Ă���)</li>				<li>�������ɗ��p����v�Z�ʁA�̈�ʂ���t�Z�ł���悤�ɂ���</li>				<li>�������̌v�Z�ʁA�̈�ʂ����炷�B�܂��Acache�ɍڂ�₷������悤�ɂ���B��̓I��					<ul>						<li>���p����DFA��shortcut������</li>						<li>word model�Ȃǂ𓱓����A���̑J�ڂŕ��������𕜌��ł���悤�ɂ���</li>						<li>DFA���̂̈��k�\��</li>					</ul>				</li>				<li>���k���̌���					<ul>						<li>���k�ɗp����model�𕡎G�ɂ���</li>						<li>���kmodel���̂�����Ɉ��k</li>					</ul>				</li>				<li>��Application�ւ̓���</li>				<li>�p��̐�����</li>			</ul>			<p>Archiver�Ƃ��Ă̗��p�ɕK�{�Ȃ���(�������A�����炭�����ł͂��Ȃ�)</p>			<ul>				<li>Error�����̌���B�j��File�̕���</li>				<li>����File�̕ۑ��Bdirectory�\���̕ۑ�</li>			</ul></td>	</tr></table><h3>�ӎ�</h3><table width="75%">	<tr>		<td class=box><p>IPA�ɂ�関��Youth�A����Project��ʂ��ē����Z�p��m���ɂ��{��@�͊J������܂����B<br>�܂������̕�����w�E�⏕���Ȃǂ��󂯂܂����B�����ɐS��芴�ӂ������܂��B</p>			</td>	</tr></table><h3>�Q�l����</h3><table width="75%">	<tr>		<td class=box> Daisuke Okanohara. Partial Decodable Compression with Static PPM. 2004.</td>	</tr></table></body>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=Shift_JIS">
+<title>SP partial decodable compression</title>
+<style type="text/css">
+.box{
+	font-size:14px;
+	border-top-width:1px;
+	border-top-style:solid;
+	border-top-color:#FF9966;
+	width:600px
+}
+</style></head><body>
+<h1>SP<br>partial decodable compression</h1>
+<p>Daisuke Okanohara<br>VZV05226@nifty.com</p>
+<h3>新着情報</h3>
+<table width="75%">
+	<tr>
+		<td class=box>2004/11/28　sp v0.2(WindowsXP)<br>
+			　　　　　　　　使用memory領域を改善。<br>
+			2004/11/15　source code公開<br>
+			　　　　　　　　注意事項にsource codeに関する情報を追加<br>
+			2004/11/14　site公開<br>
+			　　　　　　　　sp v0.1(WindowsXP) 公開</td>
+	</tr>
+</table>
+<h3>SPとは</h3>
+<table width="75%">
+	<tr>
+		<td class=box><p>SPはStatic PPMを用いたData圧縮programです。<br>
+				従来のData圧縮法と比較し次の特徴があります。</p>
+			<ul>
+				<li>全体を復元せずに任意の部分のみを復元可能</li>
+				<li>大きいFileに対して圧縮率はbzipと同程度。小さいFileではgzipと同程度。</li>
+				<li>復元処理の計算量、領域量は従来の高圧縮率の手法(BWTやPPM)と比較して小さい</li>
+			</ul>
+			</td>
+	</tr>
+</table>
+<h3>注意事項</h3>
+<table width="75%">
+	<tr>
+		<td height=30 class=box><p>SPは研究目的に開発されたため、一般的な圧縮softwareとしての利用は想定していません。そのため、圧縮したFileが復元できない可能性や最悪の場合Fileが消去される可能性があります。決して<strong>研究目的以外で利用しないでください。本program(SP)を利用したことにより生じたいかなる損害に対しても作者は責任を負いません。</strong>ご了承ください。</p>
+			<p>また、source codeをcompileし、動作させた結果に対しても作者は一切責任負いません。source codeは自由に改変、利用してくださって構いません。商用利用もご自由にしてくださって構いませんがその場合は(VZV05226@nifty.com)に連絡をください。(source codeが他の特許権や著作権を侵害しているかどうかについては一応注意を払っていますが、ないという確証はありません)</p></td>
+	</tr>
+</table>
+<h3>更新履歴</h3>
+<table width="75%">
+	<tr>
+		<td height=130 class=box>
+			<table width="75%">
+				<tr class=box>
+					<td width=33>v0.2　</td>
+					<td width=563>圧縮側でStatic Modelが複数ある場合には、符号化が終わった順にModelを保存し廃棄するようにした。
+						復元側でStatic Modelが複数ある場合には、自分の担当範囲の復元が終わったModelを順次廃棄するようにした。</td>
+				</tr>
+				<tr class=box>
+					<td height=44>v0.1</td>
+					<td>Initial Release</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<h3>Download</h3>
+<table width="75%">
+	<tr>
+		<td class=box>v0.2 <a href="software/sp0.2.exe">sp.exe</a>　　　(Windows XP)<br>
+			　　　<a href="software/sp_src0.2.zip">sp_src.zip</a>　Visual Studio C++ .NET2003(Windows
+			XP)版でcompile確認<br>　　　　　　　　　TurboLinux(LINUX Kernel2.6)上でcompileと動作確認済み<br><br>
+			v0.1 <a href="software/sp0.1.exe">sp.exe</a>　　　(Windows XP)<br>
+			　　　<a href="software/sp_src0.1.zip">sp_src.zip</a>　Visual Studio C++ .NET2003(Windows XP)版でcompile確認<br>
+			　　　　　　　　　TurboLinux(LINUX Kernel2.6)上でcompileと動作確認済み</td>
+	</tr>
+</table>
+<h3>利用方法</h3>
+<table width="75%">
+	<tr>
+		<td class=box><p>(sp -h で確認できます)</p>
+			<p><strong>Fileを圧縮する<br>e</strong></p>
+			<blockquote>
+				<p>sp e abc.txt</p>
+			</blockquote>
+			<p>&gt;&gt; abc.txtを圧縮し、abc.txt.dに保存します。</p>
+			<p><strong>Fileを全部復元する<br>d -a</strong></p>
+			<blockquote>
+				<p>sp d -a abc.txt.d</p>
+			</blockquote>
+			<p>&gt;&gt; abc.txt.dを復元し、abc.txt.d.tesに復元します。(abc.txtとabc.txt.d.tesは同一内容になります)</p>
+			<p><strong>Fileを部分復元する(1)<br>d -sSTART:LENGTH</strong></p>
+			<blockquote>
+				<p>sp d -s1000:10 abc.txt.d</p>
+			</blockquote>
+			<p>&gt;&gt; abc.txt.dを1000byte目から10byte部分復元し、abc.txt.d.tesに保存します。</p>
+			<p><strong>Fileを部分復元する(2)<br>d -sSTART-END</strong></p>
+			<blockquote>
+				<p>sp d -s1000-1200 abc.txt.d</p>
+			</blockquote>
+			<p>&gt;&gt; abc.txt.dを1000byte目から1199byteまで200byte部分復元し、abc.txt.d.tesに保存します。</p>
+			<blockquote>
+				<p>sp d -s1000- abc.txt.d<br>sp d -s-1000 abc.txt.d</p>
+			</blockquote>
+			<p>&gt;&gt; -sは2つの数字のどちらかを省略した場合、START=0、END=Fileの尺が入ります。<br>　　この上の例の場合1000byte目からEOFまで、下の例の場合最初から999byteまで部分復元します。</p>
+			</td>
+	</tr>
+</table>
+<h3>feedbackなど</h3>
+<table width="75%">
+	<tr>
+		<td class=box>
+			<p>不具合があった場合(現時点ではまだたくさんありますが)やご意見などがございましたら、以下の連絡先もしくは掲示板に連絡をいただけると幸いです。</p>
+			<p>VZV05226@nifty.com (mail)<br>
+				<a href="https://web.archive.org/web/20050121045908/http://6557.teacup.com/comp/bbs">BBS</a></p>
+	</tr>
+</table>
+<h3>今後の予定</h3>
+<table width="75%">
+	<tr>
+		<td height=284 class=box>
+			<p>優先事項順に並んでいます</p>
+			<ul>
+				<li>UNIXなど他の環境への対応</li>
+				<li>不具合をつぶす(同じ文字が並ぶような特定のbyte列でうまくいかないことが確認されている)</li>
+				<li>復元時に利用する計算量、領域量から逆算できるようにする</li>
+				<li>復元時の計算量、領域量を減らす。また、cacheに載りやすくするようにする。具体的に
+					<ul>
+						<li>利用するDFAにshortcutを入れる</li>
+						<li>word modelなどを導入し、一回の遷移で複数文字を復元できるようにする</li>
+						<li>DFA自体の圧縮表現</li>
+					</ul>
+				</li>
+				<li>圧縮率の向上
+					<ul>
+						<li>圧縮に用いるmodelを複雑にする</li>
+						<li>圧縮model自体をさらに圧縮</li>
+					</ul>
+				</li>
+				<li>他Applicationへの導入</li>
+				<li>英語の説明書</li>
+			</ul>
+			<p>Archiverとしての利用に必須なもの(しかし、おそらく自分ではしない)</p>
+			<ul>
+				<li>Error処理の向上。破損Fileの復元</li>
+				<li>複数Fileの保存。directory構造の保存</li>
+			</ul></td>
+	</tr>
+</table>
+<h3>謝辞</h3>
+<table width="75%">
+	<tr>
+		<td class=box><p>IPAによる未踏Youth、未踏Projectを通じて得た技術や知見により本手法は開発されました。<br>また多くの方から指摘や助言などを受けました。ここに心より感謝いたします。</p>
+			</td>
+	</tr>
+</table>
+<h3>参考文献</h3>
+<table width="75%">
+	<tr>
+		<td class=box>Daisuke Okanohara. Partial Decodable Compression with Static PPM. 2004.</td>
+	</tr>
+</table>
+</body>
