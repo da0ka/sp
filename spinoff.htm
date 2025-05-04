@@ -1,0 +1,130 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf8">
+<title>spinoff</title>
+</head>
+<body><table width=652 height=2452 border=0>
+	<tr>
+		<td width=646 height=68><h2>spinoff</h2>
+		<p>Daisuke Okanohara(VZV05226@nifty.com)</p></td>
+	</tr>
+	<tr>
+		<td height=107><p><font size=2>spinoffは、定数時間で局所復元ができる算法を説明するために作成した圧縮、復元programです。<br>通常、圧縮算法は局所復元、つまり任意の位置から直接復元することはできず、一部分を利用するためには、全体を復元してから、その部分を使うという手法しかありませんでした。(LZ法、BWT法などで局所復元できるものもあるが、その場合、圧縮率が大幅に下がることは避けられない)</font></p>
+		<p><font size=2>ここでは、動画圧縮などで使われているI frame、P frameの技術を利用し、また全fileにわたって同じ予測表を用いる、Static PPM(すでにPPMの定義に反するかもしれないが)を用いて、局所復元を実現させる方法を紹介します。</font></p>
+		<p>&nbsp;</p></td>
+	</tr>
+	<tr>
+		<td height=18 bgcolor="#FF6633"><p><font size=4>なぜ今まで、局所復元ができなかったか</font></p>
+		</td>
+	</tr>
+	<tr>
+		<td><p><font size=2>今までの手法は、ある部分を復元するときに、その復元状態を再現できないため、無作為に復元することができませんでした。</font></p>
+		<p><font size=2>例えば、LZ77、LZ78は今までのDataの履歴から、現在処理しているDataが前のDataと一致しているならば、その記号を出力します。復元時、いきなり復元したい場所に移ったとしても、履歴が再現できないため復元できません。BWTは区間符号化をしているため、もちろん一部分だけ復元しようとすることはできません。<br>PPMは、Dataを符号化しながら、予測表を構築していきます。復元時に任意の位置に移動したときに予測表は履歴がないため再現できません。</font></p>
+		<p><font size=2>ただ、この予測表を矮小、全Dataにわたってstaticに持っていることができれば、任意の位置に移動しても復元ができます。このspinoffでは、どのようにすれば矮小に持つことができるかということには焦点を置かず、それで実際どのように局所復元ができるかの実演をします。</font></p>
+		</td>
+	</tr>
+	<tr>
+		<td bgcolor="#33CCFF"><font size=4>どのようにして、任意の復元したい場所に移動するか</font></td>
+	</tr>
+	<tr>
+		<td height=959><p><font size=2>たとえ、任意の場所に移動して、そのとき圧縮したときと同じ状態が再現できたとしても、そもそも、その任意の場所に移動することは難しいことです。</font></p>
+			<p><font size=2>例えば、Dataの128375byte目から383byte復元したい。<br>という要求があった場合、この128375byte目の位置をどのように復元fileの中から発見することができるでしょうか。というのも圧縮した時には、Huffman符号、算術符号(Range Coder含む)などにより、各記号が可変長であり、さらにその記号の長さというのはPPM法などの場合は次々に変わります。ある位置でaが2bitで表されていても、違う場所では5bitで表されているかもしれません。算術符号では、各記号は整数bitでは表されていない場合もあります(例えば0.5bitなど)。</font></p>
+			<p><font size=2>そこで、圧縮したときに一定間隔毎に、これが圧縮したDataでは何byte目かを保存しておきます。このときHuffman法、算術符号では、bufferにbit単位の情報も保持していますが、それは掃き出しておきます。つまり正確に何byte目なのかをわかるようにしておきます。</font></p>
+			<p><font size=2>例えば、いつものDataですが</font></p><p><font size=2>　abracadabra</font></p>
+			<p><font size=2>というDataがあり、これをorder-1、つまり独立な出現回数を数え、それを用いたときのHuffman符号化したときを考えます。</font></p>
+			<table width=189 border=0>
+				<tr>
+					<td><font size=2>a</font></td>
+					<td><font size=2>1bit</font></td>
+				</tr>
+				<tr>
+					<td><font size=2>b</font></td>
+					<td><font size=2>2bit</font></td>
+				</tr>
+				<tr>
+					<td><font size=2>c</font></td>
+					<td><font size=2>3bit</font></td>
+				</tr>
+				<tr>
+					<td><font size=2>d</font></td>
+					<td><font size=2>4bit</font></td>
+				</tr>
+				<tr>
+					<td><font size=2>r</font></td>
+					<td><font size=2>4bit</font></td>
+				</tr>
+			</table>
+			<p><font size=2>3文字ごとに圧縮したData内での位置を保存しておきます。このとき、8bit未満、つまり1byte未満は繰り上げておき、残りの部分に意味の無いDataでうめておきます。</font></p>
+			<table width=245 border=0>
+				<tr>
+					<td width=96><p><font size=2>abra<br>
+						(1 + 2 + 4 + 1 = 1byte)</font></p>
+					</td>
+					<td width=139><font size=2>1 </font></td>
+				</tr>
+				<tr>
+					<td><p><font size=2>cada<br>
+						(3 + 1 + 4 + 1 =<br>
+						9bit 2byteに繰り上げ)</font></p>
+					</td>
+					<td><font size=2>3</font></td>
+				</tr>
+				<tr>
+					<td><p><font size=2>bra　(2 + 4 + 1 = <br>
+						7bit 1byteに繰り上げ)</font></p>
+					</td>
+					<td><font size=2>4</font></td>
+				</tr>
+			</table>     
+			<p><font size=2>そして、この表を圧縮したDataにつけておきます。復元のときはこの表を用いて、復元したい一番近い位置に移動します。</font></p>
+			<p><font color="#FF0000" size=5>a</font><font size=5>bra<font color="#FF0000">c</font>ada<font color="#FF0000">b</font>ra</font></p>
+			<p><font size=2>今の例だと、上の赤い所までは表を用いて直接移動することができ、復元することができます。その間のDataに関しては、移動してから、Dataを復元しながら移動し、復元する位置まで移動します。例えば、7文字め(d)から4文字復元したいとします。すると、一番近い直前のData、cまで直接移動し、c、aを復元してから(これらのDataは無駄に復元したことになるが)dを復元します。</font></p>
+			<p><font color="#FF0000" size=5>a</font><font size=5>bra<font color="#FF0000">c</font>a<font color="#00FFFF"><strong>d</strong></font>a<font color="#FF0000">b</font>ra</font></p>
+			<p><font size=2>以後、話が進めやすいように、定義をおきます。直接indexが振られているData(赤色のData)をI Data、振られていないDataをP Dataと呼ぶことにします。</font></p>     
+			<p><font size=2>この考えは、動画圧縮で用いられているI frame(Intra frame) P frame(Predictive flame)の関係に似ています。I frameは静止画であり、単体で復元できるのに対し、P frameは前のframeとの差分を圧縮に用いているので、直接復元できません。全く同じことがいえて、本手法でも、P Dataに対しては、直前のI Dataまでの情報を用いることができます。これにより、あくまでstaticであるという条件がつきますが、PPMでのorder-2,order-3といった圧縮も行えることがいえます。</font></p>
+		<p>&nbsp;</p></td>
+	</tr>
+	<tr>
+		<td bgcolor="#9999CC"><font size=4>圧縮率について</font></td>
+	</tr>
+	<tr>
+		<td><p><font size=2>この手法は2つの面で圧縮率に対する制限を持っています。</font></p>
+		<p><font size=2>一つ目は、予測表がstaticということです。これは、復元時に、予測表を簡単に復元できなければなりません。</font></p>
+		<p><font size=2>普通にorder-2、3、4といったPPMをしようとすると、この予測表はとても大きくて持つことができません。予測表を矮小に、かつその予測表を用いた場合での圧縮率を維持しなければなりません。これはMDL原理と同じです。</font></p>
+		<p><font size=2>　あるDataを表現するために、必要なmodelを考えたとき、そのmodelの寸法をM、そのmodelによって表現された(圧縮された)Data寸法をDとおいたとき、圧縮したDataの寸法は
+			M + Dとなります。一般に、Mが小さく、つまりmodelが不正確になるとDは増え、またその逆にMが大きく、つまりmodelを正確にするとDは減ります。この相反する2つの釣り合いをとって圧縮する方法を考えなければなりません。</font></p>
+		<p><font size=2>これに対し、私は今未踏Projectで作っているものでClass Modelを使った表現方法を提案しています。これについては未踏の成果報告でまとめようと思っています。</font></p>
+		<p><font size=2>2つ目は、I Dataに対するindex、及びI Dataが履歴無しの独立した圧縮しかかけられないという制限です。これはそれほど深刻ではありません。なぜなら、例えばI Dataが256文字間隔ならば、そのindexDataはdatasize
+			/256 * sizeof(int) = datasize / 64　であり、これは圧縮率で言えば1%弱です。またI Dataが履歴無しの独立した圧縮(つまり単体で復元できるような圧縮)である面も同様に全体から見れば、非常に小さい影響しか与えません。</font></p>
+		<p>&nbsp;</p></td>
+	</tr>
+	<tr>
+		<td height=18 bgcolor="#33CCCC"><font size=4>実際の試作品 spinoff</font></td>
+	</tr>
+	<tr>
+		<td><p><font size=2>いろんな概要を述べるより、直接programを見た方がわかるという人もいると思うので、program、spinoffを作ってみました。<br>ただし、あくまで局所復元が可能だということを示すために作ったものなのでorder-1、つまり文字の出現確率を数えてそれを用いてrangecoderをかけているだけです。圧縮ソフトとしてはほとんど使えません。実際に使えるぐらいの圧縮率にするためには、これを元にいろんな工夫をしなければなりません。order-3ぐらいまでなら簡単に変更できると思うので、ぜひ試してみてください。</font></p>
+		<p><font size=2>使用、改変は自由ですが、その場合には<a href="https://web.archive.org/web/20050121045900/http://6557.teacup.com/comp/bbs">BBS</a>もしくは<a href="https://web.archive.org/web/20050121045900/mailto:VZV05226@nifty.com">VZV05226@nifty.com</a>       に一言いただけると幸いです。</font></p>
+		<p><font size=2>間違っている、このような方法はもうある、動かない、こうした方がよい、などの意見もください。<br>いないとは思いますが、このprogramを使って実際のfileを圧縮しようとして問題が発生した場合は、責任を負わないのでご了承ください。
+		(test fileを用いてください)</font></p>
+		<p><font size=2>Windows XP Microsoft Visual Studio C++ .NETでcompileを確認しています。</font></p>   <p><font size=2><a href="https://web.archive.org/web/20050121045900/http://homepage3.nifty.com/DO/src.zip">src.zip</a>　(main.cpp spinoff.cpp spinoff.h rangecoder.cpp rangecoder.hpp)</font></p>
+		<p><font size=2>spinoff e inputfile<br>
+			inputfileを圧縮</font></p>
+		<p><font size=2><br>spinoff d inputfile.spn<br>inputfile.spnを全部復元 inputfile.spn.tesというDataにそれを出力</font></p>
+		<p><font size=2>spinoff r inputfile.spn<br>inputfile.spnの任意の位置を局所復元。復元位置、長さについては、void spinoff_rdecode(const char* fileName)<br>の部分を参照してください。</font></p>
+		<p>&nbsp;</p>
+		<p><font size=2>----</font><br><font size=2>(03/10/19)</font></p>
+		<p><font size=2>一応作ったのでorder-2版のspinoffの算譜も公開します。上のsrc.zipを差し替えたので、そこからDownloadしてください。</font></p>
+		<p><font size=2>spinoff e2 inputfile<br>spinoff d2 inputfile.sp2<br>spinoff r2 inputfile.sp2</font></p>
+		<p><font size=2>でそれぞれorder1の時と同様に、圧縮、復元、局所復元をします。</font></p>
+		<p><font size=2>order1で圧縮したものをorder2で復元もしくはその逆などをした場合の動作は保障していません。<br>(ただ、拡張子が違うから大丈夫だとは思うけど)
+		</font></p>
+		<p>&nbsp;</p></td>
+	</tr>
+	<tr>
+		<td bgcolor="#CCFF00"><font size=4>最後に</font></td>
+	</tr>
+	<tr>
+		<td height=103><p><font size=2>このprogramは、IPAによる未踏創造事業によるの副産物(spinoff)です。なんらかの有益な意見がいただけるかと思いまとめてみたので、いただけることを期待しています。</font></p>
+		<p><font size=2>正式な論文、Class Modelなどを応用した他の圧縮法に匹敵する圧縮率を持ちながら局所復号可能な圧縮法などは、未踏創造事業の成果「汎用的Dataにおける確率的言語modelの抽出及びその利用」として2004年3月頃として公開する予定です。</font></p></td>
+	</tr>
+</table>
+</body>
+</html>
