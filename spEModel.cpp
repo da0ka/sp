@@ -129,7 +129,7 @@ void eModel::makeTree(node* parent, int start, int last, int depth){
 			i++;
 			continue;
 		}
-		//i , i+1, ..., i+j-1 is conserned
+		//i , i+1, ..., i+j-1 is concerned
 		node* st = new node(freq,depth+1,parent,cur);
 		if(st == 0){
 			throw "st allocate error";
