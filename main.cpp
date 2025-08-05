@@ -1,7 +1,4 @@
-/*
-	sp
-	Daisuke Okanohara (VZV05226@nifty.com)
-*/
+//sp Daisuke Okanohara (VZV05226@nifty.com)
 #include<iostream>
 #include<stdio.h>
 #include<string>
@@ -15,8 +12,8 @@ int main(int argc, char * argv[]){
 	if(argc < 3){
 		if(argc == 2){
 			string argv1(argv[1]);
-			if(argv1 == "-h"){
-				printf("sp %s(2004-11-13)\n"
+			if(argv1 == "-h"){printf(
+				"sp %s(2004-11-13)\n"
 				"usage: sp e [-i] fileName\n"
 				"       sp d [-acps] fileName.d\n"
 				" -i    interval of compression. default is 256\n"
@@ -52,37 +49,25 @@ int main(int argc, char * argv[]){
 		bool fileNameExist = false;
 		for(int i = 2; i < argc; i++){
 			if(argv[i][0] == '-'){
-				if(argv[i][1] == 0){
-					throw "option error";
-				}
+				if(argv[i][1] == 0) throw"option error";
 				opt.push_back(string((argv[i] + 1)));
-			}
-			else{
-				if(fileNameExist == true){
-					throw "too many fileName";
-				}
+			}else{
+				if(fileNameExist) throw"too many fileName";
 				fileName = argv[i];
 				fileNameExist = true;
 			}
 		}
-		if(fileNameExist == false){
-			throw "no fileName";
-		}
+		if(!fileNameExist) throw"no fileName";
 		string argv1(argv[1]);
 		if(argv1 == "e"){
 			//encode
 			freopen("edebug.txt","wb",stderr);
 			sp::encode(fileName,opt);
-		}
-		else if(argv1 == "d"){
+		}else if(argv1 == "d"){
 			//decode
 			freopen("ddebug.txt","wb",stderr);
 			sp::decode(fileName,opt);
-		}
-		else{
-			//argv error
-			throw "argv error";
-		}
+		}else throw"argv error";//argv error
 	}
 	catch(const char* errorMessage){
 		printf("%s\n",errorMessage);

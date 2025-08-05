@@ -32,6 +32,9 @@ void decode(string& fileName,vs& opt){
 	}
 	if(interval>fileSize) interval=fileSize;
 	if(interval>MAXBUF) interval=MAXBUF;
+	int bufsize=fileSize;
+	if(bufsize>MAXBUF) bufsize=MAXBUF;
+	BYTE*buf=new BYTE[bufsize];
 	//option read
 	bool stdoutCheck = false;
 	vector< pair<int,int> > orderList;
@@ -60,7 +63,7 @@ void decode(string& fileName,vs& opt){
 			}
 		}else if(*i == "a") orderList.push_back(pair<int,int>(0,fileSize));
 		else if(*i == "t")
-			for(int step = 0; step < fileSize;step += MAXBUF)
+			for(int step = 0; step < fileSize;step += 1048576)
 				orderList.push_back(pair<int,int>(step,min(step + 1024,fileSize)));
 		else if(*i == "c") stdoutCheck = true;
 		else if((*i)[0] == 's'){
@@ -74,7 +77,7 @@ void decode(string& fileName,vs& opt){
 			}else colon = true;
 			if(!colon && t == 0) start = 0;
 			else start = atoi(i->substr(1,t-1).c_str());
-			if(!colon && t == i->size()-1) last = fileSize;
+			if(!colon && (t == i->size() - 1)) last = fileSize;
 			else last = atoi(i->substr(t+1,i->size()-t-1).c_str());
 			if(colon) last += start;
 			if(start < 0){
@@ -85,11 +88,11 @@ void decode(string& fileName,vs& opt){
 				printf("start:%d last:%d\n",start,last);
 				throw"start should be smaller than fileSize";
 			}
-			if(last > fileSize) last=fileSize;
 			if(last <= start){
 				printf("start:%d last:%d\n",start,last);
 				throw"last should be greater than start";
 			}
+			if(last > fileSize) last=fileSize;
 			orderList.push_back(pair<int,int>(start,last));
 		}
 	}
@@ -154,17 +157,18 @@ void decode(string& fileName,vs& opt){
 		}
 		fseek(infp,outPos[startBlock],SEEK_SET);
 		d.setup(infp);
-		for(d_node* t = root;;){
+		for(int i=-1;;){
+			d_node* t = root->searchPath(buf,i,0);
 			int c = d.getCharacterShift2(t->cumFreq,t->size,R_SHIFT), cp = t->nc[c];
 			step++;
 			if(started == 0){
 				if(step != startOffset + 1){
-					t = t->ncSkip[c];
+//					t = t->ncSkip[c];
 					continue;
 				}
 				started = 1;
 			}
-			putc(cp,outfp);
+			putc(buf[++i]=cp,outfp);
 			if(--remain == 0) break;
 			if(step == interval){
 				nowBlock++;
@@ -176,14 +180,15 @@ void decode(string& fileName,vs& opt){
 						root->freeAll();
 						delete root;
 					}
-					root = readTree(infp,treePos[beforeRoot=currentRoot],base,history);
+					root = readTree(infp,treePos[currentRoot],base,history);
 					fseek(infp,outPos[nowBlock],SEEK_SET);
+					beforeRoot = currentRoot;
 				}
 				d.setup(infp);
-				t = root;
+//				t = root;
 				continue;
 			}
-			t = t->ncSkip[c];//if(!t)t = root;
+//			t = t->ncSkip[c];//if(!t)t = root;
 		}
 		if(!stdoutCheck) puts("done");
 	}

@@ -1,7 +1,5 @@
-/*
-	sp
-	Daisuke Okanohara (VZV05226@nifty.com)
-*/
+//sp
+//Daisuke Okanohara (VZV05226@nifty.com)
 #include<iostream>
 #include<stdio.h>
 #include<string>
@@ -15,7 +13,7 @@
 #include"riceCoder.hpp"
 
 typedef vector<string> vs;
-typedef unsigned int  uint;
+typedef unsigned int uint;
 typedef unsigned char BYTE;
 
 #define INTERVAL 256
@@ -37,15 +35,12 @@ void decode(string& fileName, vs& opt);
 struct encodeOption{
 public:
 	encodeOption(vs& opt):interval(INTERVAL){
-		for(vs::iterator i = opt.begin(); i != opt.end(); i++){
-			if((*i)[0] == 'i'){
+		for(vs::iterator i = opt.begin(); i != opt.end(); i++)
+			if((*i)[0] == 'i')
 				interval = atoi((i->substr(1)).c_str());
-			}
-		}
 	}
 	int interval;
 };
-
 int riceUnsignedN(unsigned int n, int mask);
 
 extern int m_number;
@@ -53,20 +48,14 @@ extern int m_number;
 struct node{
 	int oriTotalFreq;	//original total of frequency
 	int totalFreq;		//after ignoring lower bit
-	vector<BYTE>  nc;
-	vector<uint>  oriFreq;
-	vector<uint>  freq;
-	vector<uint>  cumFreq;
-	vector<node*> children;
-	vector<node*> ncSkip;
+	vector<BYTE> nc;
+	vector<uint> oriFreq, freq, cumFreq;
+	vector<node*> children, ncSkip;
 
 	BYTE ch;			//character attched to the branch to the parent.
 	node* parent;		//pointer to the parent
-
-	int  size;
-
+	int size;
 	node(int* i_freq,int depth,node* parent,BYTE c);
-
 	node* meargedNode;
 	bool mearged;		//is it mearged
 	bool used;			//is it used at coding
@@ -75,28 +64,26 @@ struct node{
 
 	float kl_divergence(node* par);
 	float kl_divergence2(node* par);
-	int   checkBitN(node* par);
-	int   checkBitN2();
-	int   checkBitN3();
-	int   getSize();
-	int   getNonMeargeSize();
-	int   getUsedSize();
+	int checkBitN(node* par);
+	int checkBitN2();
+	int checkBitN3();
+	int getSize();
+	int getNonMeargeSize();
+	int getUsedSize();
 
 	void outputRice(riceEncode& rc,bool m);	//m is set if node is mearged node
 	void outputRice4(node* parent, rangeEncoder& ra, bool m);
 	void outputRice2(node* parent, riceEncode& rc);
 	void outputRice3(node* parent, riceEncode& rc);
 	void set_ncSkip2();
-	node* searchPath(vector<BYTE>& buf, int p, int historyLimit);
+	node* searchPath(BYTE* buf, int p, int historyLimit);
 
 	void mearge();
 	void free();
 
-	float  kl_div;
-	int    toBit;
-	int    depth;
+	float kl_div;
+	int toBit, depth;
 };
-
 extern int totalNumber;
 struct d_node{
 	d_node(){}
@@ -104,13 +91,10 @@ struct d_node{
 	int size;
 	vector<BYTE> nc;
 	vector<uint> cumFreq;
-
-	vector<d_node*> ncSkip;
-	vector<d_node*> children;
+	vector<d_node*> ncSkip, children;
 	d_node* parent;
 	BYTE ch;
-	int depth;
-	int No;
+	int depth, No;
 
 	d_node* searchPath(BYTE* buf, int p, int historyLimit);
 
@@ -120,44 +104,38 @@ struct d_node{
 	void set_ncSkip2();
 	void freeChildren();
 	void freeAll();
-	int  debugSize();
-	int  allocateSize();
+	int debugSize();
+	int allocateSize();
 };
 class eModel{
 public:
-	eModel(int i_fileSize, int i_bufSize, encodeOption& eo):fileSize(i_fileSize), bufSize(i_bufSize), interval(eo.interval){
+	eModel(int i_fileSize, int i_bufSize, encodeOption& eo):
+	fileSize(i_fileSize),
+	bufSize(i_bufSize),
+	interval(eo.interval){
 		//allocate memory
 		printf("bufSize:%d\n",bufSize);
-		buf  = new BYTE [bufSize];
-		if(buf == 0) throw "buf allocate error";
-		pos  = new int [bufSize];
-		if(pos == 0) throw "pos allocate error";
-		freq = new int [0x100];
-		if(freq == 0) throw "freq allocate error";
-		freq2 = new int[0x100 * 0x100];
-		if(freq2 == 0) throw "freq2 allocate error";
+		buf = new BYTE [bufSize];
+		if(!buf) throw"buf allocate error";
+		pos = new int [bufSize];
+		if(!pos) throw"pos allocate error";
+		freq = new int [256];
+		if(!freq) throw"freq allocate error";
 		if(interval>fileSize) interval=fileSize;
+		if(interval>MAXBUF) interval=MAXBUF;
 	}
 	~eModel(){
 		if(buf) delete[] buf;
 		if(pos) delete[] pos;
 		if(freq) delete[] freq;
-		if(freq2) delete[] freq2;
 	}
 	void compress(FILE* infp,FILE* outfp);
 private:
 	BYTE* buf;
-	int* pos;
-	int* work;
-
-	int* freq;
-	int* freq2;
-
+	int*pos, *work, *freq;;
 	int interval;
-
-	int bufSize;	//processing size.
+	int bufSize;	//processing size
 	int fileSize;
-
 	node* makeModel();
 	void printDebug(node* root);
 	void makeTree(node* parent, int start, int last, int depth);
