@@ -8,12 +8,11 @@ unsigned int rightbits(int len,int c){
 	return c & ((1U << len) - 1U);
 }
 void riceEncode::putbits(int c, int len){
-	while(len >= putcount){
+	for(;len >= putcount;putcount = 32){
 		len -= putcount;
 		bitbuf |= rightbits(putcount, c >> len);
 		fwrite(&bitbuf,sizeof(unsigned int),1,outfp);
 		bitbuf = 0;
-		putcount = 32;
 	}
 	putcount -= len;
 	bitbuf |= rightbits(len,c) << putcount;
@@ -49,18 +48,18 @@ unsigned int riceDecode::getbits(int n){
 void riceEncode::code(int n){
 	putbit(n<0);
 	if(n<0) n = ~n;
-	int middle = n >> maskn;
-	putbits(0,middle); // 000...000
-	putbit(1);
-	putbits(n,maskn);
+	int b=0;
+	for(;n>>++b;);
+	unsignedcode(b-1,maskn);
+	b>1?putbits(n,b-1):putbit(n>0);
 }
 void riceEncode::code(int n, int mask){
 	putbit(n<0);
 	if(n<0) n = ~n;
-	int middle = n >> mask;
-	putbits(0,middle); // 000...000
-	putbit(1);
-	putbits(n,mask);
+	int b=0;
+	for(;n>>++b;);
+	unsignedcode(b-1,mask);
+	b>1?putbits(n,b-1):putbit(n>0);
 }
 void riceEncode::unsignedcode(int n, int mask){
 	if(n < 0){
@@ -72,9 +71,6 @@ void riceEncode::unsignedcode(int n, int mask){
 	putbit(1);
 	putbits(n,mask);
 }
-void riceEncode::unsignedcode_b(int n, int mask){
-	putbits(n,mask);
-}
 int riceDecode::decode(){
 	int m=getbit(), zeros = 0;
 	while(!getbit()) zeros++;
@@ -84,10 +80,8 @@ int riceDecode::decode(){
 	return n;
 }
 int riceDecode::decode(int mask){
-	int m=getbit(), zeros = 0;
-	while(!getbit()) zeros++;
-
-	int lsb = getbits(mask), n = (zeros << mask) + lsb;
+	int m=getbit(), n = unsigneddecode(mask);
+	n = n? 1<<n|getbits(n): getbit();
 	if(m) n = ~n;
 	return n;
 }
@@ -95,7 +89,4 @@ unsigned int riceDecode::unsigneddecode(int mask){
 	int zeros = 0;
 	while(!getbit()) zeros++;
 	return(zeros << mask) + getbits(mask);
-}
-unsigned int riceDecode::unsigneddecode_b(int mask){
-	return getbits(mask);
 }

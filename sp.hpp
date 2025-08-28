@@ -115,11 +115,11 @@ public:
 	interval(eo.interval){
 		//allocate memory
 		printf("bufSize:%d\n",bufSize);
-		buf = new BYTE [bufSize];
+		buf = new BYTE[bufSize];
 		if(!buf) throw"buf allocate error";
-		pos = new int [bufSize];
+		pos = new int[bufSize];
 		if(!pos) throw"pos allocate error";
-		freq = new int [256];
+		freq = new int[256];
 		if(!freq) throw"freq allocate error";
 		if(interval>fileSize) interval=fileSize;
 		if(interval>MAXBUF) interval=MAXBUF;

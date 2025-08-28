@@ -122,10 +122,10 @@ void decode(string& fileName,vs& opt){
 
 		riceDecode rc(RICE_MASK,infp);
 		outPos.resize(l);
-		outPos[0] = rc.unsigneddecode(RICE_MASK);
-		int average = rc.unsigneddecode(RICE_MASK);
-
-		for(int i = 0;++i<l;) outPos[i] = rc.decode(2) + outPos[i-1] + average;
+		outPos[0] = last = rc.unsigneddecode(RICE_MASK);
+		if(fileSize>interval)
+			for(int i = 0, avg = rc.decode(RICE_MASK);++i<l;) outPos[i] = last+=rc.decode(2)+avg;
+		else outPos[1]=last+firstPos;
 	}
 	d_node* base = new d_node();
 	base->nc.resize(256);
@@ -141,21 +141,19 @@ void decode(string& fileName,vs& opt){
 	d_node* root = NULL;
 	for(vector< pair<int,int> > ::iterator i = orderList.begin(); i != orderList.end(); i++){
 		int start = i->first, last = i->second;
-		int startBlock = start/interval, startOffset = start%interval;
+		int nowBlock = start/interval, startOffset = start%interval;
 
 		if(!stdoutCheck) printf("decode from:%d to:%d ",start,last);
-		int step = 0, started = 0, remain = last - start, nowBlock = startBlock;
+		int step = 0, started = 0, remain = last - start;
 		if(start >= fileSize) throw"start error";
 		int currentRoot = start/MAXBUF;
 
-		if(currentRoot != beforeRoot){
-			root = readTree(infp,treePos[currentRoot],base,history);
-			beforeRoot = currentRoot;
-		}
-		fseek(infp,outPos[startBlock],SEEK_SET);
+		if(currentRoot != beforeRoot)
+			root = readTree(infp,treePos[beforeRoot=currentRoot],base,history);
+		fseek(infp,outPos[nowBlock],SEEK_SET);
 		d.setup(infp);
 		for(d_node* t = root;;){
-			int c = d.getCharacterShift2(t->cumFreq,t->size,R_SHIFT), cp = t->nc[c];
+			int c = t->size>1?d.getCharacterShift2(t->cumFreq,t->size,R_SHIFT):0, cp = t->nc[c];
 			step++;
 			if(started == 0){
 				if(step != startOffset + 1){

@@ -268,16 +268,6 @@ kl_divergence(par){
 	}
 	return(kl/Math.LN2)*this.oriTotalFreq
 }
-kl_divergence2(par){
-	let{freq,nc,totalFreq}=this,kl=0,pf=par.freq,pn=par.cn,pt=par.totalFreq;
-	for(let i=0,j=0,l=freq.length,m=pf.length,c;i<l;kl+=c*Math.log(c/(pf[j]/pt))){
-		//search parent
-		for(c=nc[i];pn[j]!==c&&j<m;)j++;
-		if(j===m)throw"kl_dirvergence error";
-		c=freq[i++]/totalFreq
-	}
-	return(kl/Math.LN2)*this.oriTotalFreq
-}
 riceUnsignedN(n,mask){return(n>>mask)+mask+1}
 checkBitN(parent){
 	let{freq,nc}=this,i=0,n0=nc.length,bitcount=this.riceUnsignedN(n0,RICE_MASK),count=0,dif=0,pn=parent.nc,total=pn.length,ltotal=total&&Math.log(total),ln0=n0&&Math.log(n0),ln1=total>n0&&Math.log(total-n0);
@@ -322,7 +312,7 @@ getUsedSize(){
 	return n
 }
 searchPath(buf,p,historyLimit){
-	if(p>=historyLimit)//liner search
+	if(p>=historyLimit)//binary search
 		for(let cur=buf[p],S=this.children,left=0,right=S.length,center;left<right;S[center].ch<cur?left=center+1:right=center)
 			if(S[center=left+right>>1].ch===cur)return S[center].searchPath(buf,p-1,historyLimit);
 	//p<0 or not found
@@ -342,7 +332,7 @@ outputRice(rc,m){
 	n=children.length;rc.putbit(n>0);
 	if(n){
 		rc.unsignedcode(n-1,RICE_MASK);//about 10bit
-		for(let i=0;i<n;)children[i++].outputRice(rc);
+		for(let i=0;i<n;)children[i++].outputRice(rc)
 	}
 }
 outputRice4(dad,ra,m){
@@ -381,7 +371,7 @@ mearge(){
 				for(;k;)cf[N[--k]]+=F[k];
 				F=b.freq,N=b.nc,l+=k=F.length;
 				for(;k;)cf[N[--k]]+=F[k];
-				let t=new node(cf,a.depth,a.parent,a.ch),gain=a.kl_divergence2(t)+b.kl_divergence2(t);
+				let t=new node(cf,a.depth,a.parent,a.ch),gain=a.kl_divergence(t)+b.kl_divergence(t);
 				t.toBit=t.checkBitN3();
 				let bitCount=a.toBit+b.toBit-t.toBit+l-t.freq.length+1;
 				//check the increasing cost and benefit
@@ -492,11 +482,6 @@ set_ncSkip2(){
 	}
 	for(;cs;)children[--cs].set_ncSkip2()
 }
-debugSize(){
-	let{children}=this,l=children.length,i=0,s=1;
-	for(;i<l;)s+=children[i++].debugSize();
-	return s
-}
 allocateSize(){
 	let{nc,children,cumFreq,ncSkip}=this,s=nc.length+(cumFreq.length+ncSkip.length+7<<2),i=children.length;
 	for(;i;)s+=children[--i].allocateSize();
@@ -591,10 +576,12 @@ compress(infp,outfp){
 			let c=A[i++];
 			t.used=true;
 			//Binary Search
-			let left=0,right=t.nc.length,p;
-			for(;left<right&&t.nc[p=left+right>>1]!==c;)t.nc[p]<c?left=p+1:right=p;
-			if(left===right)throw"cannot found nc";
-			e.encodeshift(t.cumFreq[p],t.freq[p],R_SHIFT);
+			let left=0,right=t.nc.length,p=0;
+			if(right>1){
+				for(;left<right&&t.nc[p=left+right>>1]!==c;)t.nc[p]<c?left=p+1:right=p;
+				if(left===right)throw"cannot found nc";
+				e.encodeshift(t.cumFreq[p],t.freq[p],R_SHIFT)
+			}
 			if(++step===interval){
 				step=0;e.flush();e.setup();
 				out_pos[++inPos]=outfp.length;
@@ -616,24 +603,24 @@ compress(infp,outfp){
 	//contents of footer
 	let nowPos=outfp.length,rc=new riceEncode(outfp);
 	rc.unsignedcode(out_pos[0],RICE_MASK);
-	let x=1/0,y=(out_pos[0]-out_pos[i=inPos])/~i>>>0,min=x,avg=y;
+	let x=1/0,v=(out_pos[0]-out_pos[i=inPos])/~i>>>0,min=x,avg=v;
 	for(;i;){
 		let n=out_pos[i]-=out_pos[--i];
 		if(n<min)min=n
 	}
 	//find best avg
-	for(i=min;i<y;i++){
-		let a=0,c=0;
-		for(;a<inPos;){
-			let n=out_pos[++a]-i,b=0;
+	for(;min<v--;){
+		let c=i=0;
+		for(;i<inPos;){
+			let n=out_pos[++i]-v,b=0;
 			if(n<0)n=~n;
 			for(;n>>++b;);
 			c+=(b>>2)+(b>1?b+3:5)
 		}
-		if(c<x)x=c,avg=i
+		if(c<x)x=c,avg=v
 	}
-	rc.code(avg,RICE_MASK);
-	for(i=0;i<inPos;)rc.code(out_pos[++i]-avg,2);
+	if(fileSize>interval)
+		for(i=0,rc.code(avg,RICE_MASK);i<inPos;)rc.code(out_pos[++i]-avg,2);
 	rc.flush(i=0);out_pos=[];
 	for(x of treePos)
 		for(n=63,p=i;x-=out_pos[i++]=x&n;n=255)x/=n+1,out_pos[p]+=64;
@@ -675,8 +662,9 @@ function SPPMd(infp,opt={}){
 		infp.p=d;
 		let rc=new riceDecode(infp);
 		outPos=new Uint32Array(c=fileSize/interval+1>>>0);
-		outPos[i=0]=rc.unsigneddecode(RICE_MASK);
-		for(b=rc.decode(RICE_MASK);++i<c;)outPos[i]=outPos[i-1]+rc.decode(2)+b
+		outPos[i=0]=a=rc.unsigneddecode(RICE_MASK);
+		if(interval<fileSize)for(b=rc.decode(RICE_MASK);++i<c;)outPos[i]=a+=rc.decode(2)+b;
+		else outPos[1]=d+a
 	}
 	let base=new dNode,d=new rangeDecoder;
 	base.nc=Uint8Array.from(Array(base.size=256),(a,b)=>b);
@@ -687,7 +675,7 @@ function SPPMd(infp,opt={}){
 	infp.p=outPos[nowBlock];
 	d.setup(infp);
 	for(let t=root;;){
-		let c=d.getCharacterShift2(t.cumFreq,t.size,R_SHIFT),cp=t.nc[c];
+		let c=t.size,cp=t.nc[c=c>1?d.getCharacterShift2(t.cumFreq,c,R_SHIFT):0];
 		step++;
 		if(!started){
 			if(step!=startOffset+1){t=t.ncSkip[c];continue}

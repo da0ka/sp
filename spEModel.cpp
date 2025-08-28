@@ -31,21 +31,21 @@ void eModel::makeTree(node* parent, int start, int last, int depth){
 	int i = start, s = buf[pos[i]+1];
 	for(;++i < last && s == buf[pos[i]+1];);
 	if(i == last) return;//everything is same. we don't have to check more
+	BYTE*B=buf-depth;
 	if(depth>1){
 		//We already sort depth 0,1
 		i = start, s=last - i;
 		if(s<32)//Insertion sort
-			for(;++i < last;){
-				int j = i - 1;
-				for(s = pos[i]; j >= start && buf[pos[j] - depth] > buf[s - depth]; j--)
+			for(int j=i;++i < last;j=i){
+				for(s = pos[i]; j >= start && B[pos[j]] > B[s]; j--)
 					pos[j+1] = pos[j];
 				pos[j+1] = s;
 			}
 		else{//Bucket sort
 			memset(freq,0,sizeof(int) * 256);
-			for(; i < last;) freq[buf[pos[i++] - depth]]++;
-			for(int c=freq[i=0];c<s;) c=freq[++i]+=c;
-			for(i = last; --i >= start;) work[--freq[buf[pos[i] - depth]]] = pos[i];
+			for(;i < last;) freq[B[pos[i++]]]++;
+			for(int *f=freq, c=*f;c<s;) c=*++f+=c;
+			for(;--i >= start;) work[--freq[B[pos[i]]]] = pos[i];
 			memcpy(pos + start,work,s*sizeof(int));
 		}
 	}
@@ -64,17 +64,17 @@ void eModel::makeTree(node* parent, int start, int last, int depth){
 		}
 		if(p - depth == bufSize){i++;continue;}
 		memset(freq,0,sizeof(int) * 256);
-		BYTE cur = buf[p - depth];
+		BYTE cur = B[p];
 		//check how many character is same
 		int j = i;
 		for(freq[buf[p+1]]=p+1 < bufSize; ++i < last;){
 			if((p=pos[i]) < depth) throw"error2";
-			if(cur != buf[p - depth]) break;
-			if(p+1 < bufSize) freq[buf[p+1]]++;
+			if(cur != B[p]) break;
+			if(++p < bufSize) freq[buf[p]]++;
 		}
 		//j , j+1, ..., i-1 is concerned
 		node* st = new node(freq,depth+1,parent,cur);
-		if(st == 0) throw"st allocate error";
+		if(!st) throw"st allocate error";
 		if(st->totalFreq == 0){
 			delete st;
 			continue;
@@ -87,24 +87,24 @@ void eModel::makeTree(node* parent, int start, int last, int depth){
 	}
 	bitCount += parent->checkBitN2();
 	if(gain < bitCount){
-		for(vector<node*>::iterator i = children.begin(); i != children.end(); i++)
-			delete *i;
+		for(vector<node*>::iterator b=children.begin(), e=children.end();b!=e;)
+			delete *--e;
 		return;
 	}
 	//register
 	parent->children = children;
 	//recursion
-	for(int i = 0, l=(int)children.size(); i < l; i++)
+	for(int i = (int)children.size();i--;)
 		makeTree(children[i],range[i].first,range[i].second,depth+1);
 }
 void eModel::compress(FILE* infp,FILE* outfp){
-	int remainSize = fileSize, split=fileSize / interval, inPos = 1;
+	int remainSize = fileSize, inPos = 0;
 
 	printf(" INTERVAL:%d\n",interval);
 	fwrite(&fileSize,sizeof(int),1,outfp);
 	fwrite(&interval,sizeof(int),1,outfp);
 	rangeEncoder e(outfp);
-	vector<int> out_pos(split+1); //Position at Compressed Data
+	vector<int> out_pos(fileSize/interval+1); //Position at Compressed Data
 	vector<int> treePos;
 //	vector<BYTE> history(MAXDEPTH);
 
@@ -140,23 +140,24 @@ void eModel::compress(FILE* infp,FILE* outfp){
 			t_m->used = true;
 
 			//Binary Search
-			int c=buf[i], left = 0, right = (int)t->nc.size(), p;
-			while(left < right && t->nc[p = left+right>>1] != c)
-				t->nc[p]<c? left = p+1: right = p;
-			if(left == right){
-				printf("index:%d\n",i);
-				throw"cannot found nc";
+			int c=buf[i], left = 0, right = (int)t->nc.size(), p=0;
+			if(right>1){
+				while(left < right && t->nc[p = left+right>>1] != c)
+					t->nc[p]<c? left = p+1: right = p;
+				if(left == right){
+					printf("index:%d\n",i);
+					throw"cannot found nc";
+				}
+				e.encodeshift(t->cumFreq[p],t->freq[p],R_SHIFT);
 			}
-			e.encodeshift(t->cumFreq[p],t->freq[p],R_SHIFT);
 			if(++step == interval){
 				step = 0;
 				e.flush();e.setup();
-				out_pos[inPos++] = ftell(outfp);
+				out_pos[++inPos] = ftell(outfp);
 				t = root;
 				continue;
 			}
 			t = t->ncSkip[p];
-//			if(!t)t=root;
 		}
 		e.flush();
 		treePos.push_back(ftell(outfp));
@@ -170,7 +171,7 @@ void eModel::compress(FILE* infp,FILE* outfp){
 		root->free();
 		delete root;
 		puts("done");
-		out_pos[inPos-1] = ftell(outfp);
+		out_pos[inPos] = ftell(outfp);
 	}
 	/*
 		contents of footer
@@ -185,10 +186,27 @@ void eModel::compress(FILE* infp,FILE* outfp){
 	{
 		riceEncode rc(RICE_MASK,outfp);
 		rc.unsignedcode(out_pos[0],RICE_MASK);
-		int average = (out_pos[0] - out_pos[split])/~split;
-		rc.unsignedcode(average,RICE_MASK);
-		for(int i = 0; ++i <= split;)
-			rc.code(out_pos[i]-out_pos[i-1]-average,2);
+		int x=-1u>>1, v = (out_pos[0] - out_pos[inPos])/~inPos, min=x, avg=v;
+		//äKç∑êîóÒç\íz
+		for(int i=inPos,n;i;--i){
+			n=out_pos[i]-=out_pos[i-1];
+			if(n<min)min=n;
+		}
+		//find best avg
+		for(;min<v--;){
+			int i=0,c=0;
+			for(;i<inPos;){
+				int n=out_pos[++i]-v,b=0;
+				if(n<0)n=~n;
+				for(;n>>++b;);
+				c+=(b>>2)+(b>1?b+3:5);
+			}
+			if(c<x)x=c,avg=v;
+		}
+		if(fileSize>interval){
+			rc.code(avg,RICE_MASK);
+			for(int i = 0; i < inPos;) rc.code(out_pos[++i]-avg,2);
+		}
 		rc.flush();
 	}
 	for(vector<int>::iterator i = treePos.begin(); i != treePos.end(); i++){

@@ -22,10 +22,10 @@ namespace sp{
 				nc[d] = i;
 				//freq[d] = f >> t;
 
-				if(f > 1){
+				if(f > 2){
 					int k = 0;
 					for(;f>>++k;);
-					f >>= k = (k>>1) + (k&1);
+					f >>= k -= k>>1;
 					i_freq[i]=f<<=k;
 				}
 				totalFreq += freq[d++] = f;
@@ -76,35 +76,30 @@ namespace sp{
 		p /= 2;
 		if(n0 != 1) bitcount += riceUnsignedN(p,RICE_MASK);
 	*/
-		int count = 0, dif = 0;
+		int count = 0;
 		//put nc
 		float ltotal = total ? log((float)total) : 0.f;
 		float ln0 = n0 ? log((float)n0) : 0.f;
 		float ln1 = total > n0 ? log((float)(total-n0)) : 0.f;
 		bitcount += (int)((total * ltotal-n0 * ln0 - (total-n0) * ln1) / log(2.f));
 
-		for(int i = 0; i < total && count < n0; i++)
+		if(n0 != 1)for(int i = 0; i < total && count < n0; i++)
 			if(parent->nc[i] == nc[count]){
-				if(n0 != 1){
-					//bitcount += riceUnsignedN(freq[count] - 1,p);
-					int t = freq[count]-1, k = 0;
-					for(;t;k++) t >>= 1;
-					bitcount += riceUnsignedN(k,2);
-					if(k){
-						bitcount += k = (k>>1) - (k & 1);
-						//rc.unsignedcode_b(t >>(k>>1) + (k & 1),k);
-					}
-				}
+				//bitcount += riceUnsignedN(freq[count] - 1,p);
+				int t = freq[count]-1, k = 0;
+				for(;t>>k;)++k;
+				bitcount += riceUnsignedN(k,2);
+				if(k)bitcount += k>>1;
 				count++;
 			}
 		return++bitcount;//children count
 	}
 	int node::checkBitN3(){
-		int bitcount = 0, p = 0, t = totalFreq;
+		int bitcount = 0, p = 0, t = totalFreq, i = (int)nc.size();
 		for(;t;p++) t >>= 1;
 		p>>=1;
-		if(nc.size() != 1) bitcount += riceUnsignedN(p,RICE_MASK);
-		for(int i = (int)nc.size();i;) bitcount += riceUnsignedN(freq[--i] - 1,p);
+		if(i != 1) bitcount += riceUnsignedN(p,RICE_MASK);
+		for(;i;) bitcount += riceUnsignedN(freq[--i] - 1,p);
 		return bitcount;
 	}
 	int node::checkBitN2(){
@@ -112,7 +107,7 @@ namespace sp{
 		float ltotal = log((float)total);
 		float ln0 = n0 ? log((float)n0) : 0.f;
 		float ln1 = total > n0 ? log((float)(total-n0)) : 0.f;
-		int bitcount = riceUnsignedN((int)children.size(),RICE_MASK);
+		int bitcount = riceUnsignedN(n0,RICE_MASK);
 
 		return bitcount+(int)((total * ltotal-n0 * ln0 - (total-n0) * ln1) / log(2.f));
 	}
@@ -164,23 +159,18 @@ namespace sp{
 					rc.unsignedcode(k-1,2);
 					if(k > 2){
 						int k1 = k>>1;
-						rc.unsignedcode_b(t>>k1 + (k & 1),k1);
+						rc.putbits(t>>k1 + (k & 1),k1);
 					}
 				}
-		}//else{
-			/*
-			if(mearged == 1){
-				rc.putbit(1);
-				if(meargedNode->meargedNumber == -1){
-					rc.putbit(1);
-					meargedNode->outputRice(parent,rc,true);
-				}else{
-					rc.putbit(0);
-					rc.unsignedcode(meargedNode->meargedNumber,RICE_MASK);
-				}
-			}else rc.putbit(0);
-			*/
-//		}
+		}/*else{
+			rc.putbit(mearged);
+			if(mearged){
+				int b=meargedNode->meargedNumber == -1;
+				rc.putbit(b);
+				if(b) meargedNode->outputRice(parent,rc,true);
+				else rc.unsignedcode(meargedNode->meargedNumber,RICE_MASK);
+			}
+		}*/
 		if(m){
 			meargedNumber = m_number++;
 			return;
@@ -217,7 +207,7 @@ namespace sp{
 			throw"error";
 		}
 		int t = 0;
-		for(;n > 0;t++) n >>= 1;
+		for(;n;t++) n >>= 1;
 		return t;
 	}
 	void node::mearge(){

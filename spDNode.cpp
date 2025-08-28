@@ -14,7 +14,7 @@ namespace sp{
 				int k = rc.unsigneddecode(2) + 1;
 				if(k > 2){
 					int k1 = k>>1;
-					k = rc.unsigneddecode_b(k1) << k1 + (k & 1);
+					k = rc.getbits(k1) << k1 + (k & 1);
 				}
 				cumFreq[i] = k;
 			}
