@@ -187,7 +187,7 @@ void eModel::compress(FILE* infp,FILE* outfp){
 		riceEncode rc(RICE_MASK,outfp);
 		rc.unsignedcode(out_pos[0],RICE_MASK);
 		int x=-1u>>1, v = (out_pos[0] - out_pos[inPos])/~inPos, min=x, avg=v;
-		//ŠK·”—ñ\’z
+		//converted to sequence of differences
 		for(int i=inPos,n;i;--i){
 			n=out_pos[i]-=out_pos[i-1];
 			if(n<min)min=n;
