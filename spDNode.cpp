@@ -31,26 +31,22 @@ namespace sp{
 	}
 	void d_node::inputRice4(d_node* parent,rangeDecoder& rd){
 		this->parent = parent;
-		int count = 0;
-		vector<uint> freq(2), cumFreq(3);
-		int total = (int)parent->nc.size(), l=(int)nc.size();
-		freq[0] = l;
-		freq[1] = total - l;
-		makeCumFreq_dec(freq,cumFreq);
-		for(int i = 0; count < l; i++)
+		int i=0, count = 0, total = (int)parent->nc.size(), l=(int)nc.size();
+		uint freq[]={l,total-l}, cumFreq[]={0,l,total};
+		for(; count < l && l-count!=total-i; i++)
 			if(rd.getCharacter(freq,cumFreq,2) == 0)
 				nc[count++] = parent->nc[i];
+		for(;count<l;i++)nc[count++] = parent->nc[i];
 		if(l=children.size()){
-			int count = 0;
-			freq[0] = l;
-			freq[1] = 256 - l;
-			makeCumFreq_dec(freq,cumFreq);
-			for(int i = 0; i < 256 && count < l; i++)
-				if(rd.getCharacterShift(freq,cumFreq,2,8) == 0){
-					children[count]->ch = (BYTE)i;
-					children[count]->inputRice4(this,rd);
-					count++;
-				}
+			freq[0] = cumFreq[1]=l;
+			freq[1] = 256 - l;cumFreq[2] = 256;
+			for(i = count = 0; count < l && l-count!=256-i; i++)
+				if(rd.getCharacterShift(freq,cumFreq,2,8) == 0)
+					children[count]->ch = (BYTE)i,
+					children[count++]->inputRice4(this,rd);
+			for(;count<l;i++)
+				children[count]->ch = (BYTE)i,
+				children[count++]->inputRice4(this,rd);
 		}
 	}
 	d_node* d_node::searchPath(BYTE* buf, int p, int historyLimit){

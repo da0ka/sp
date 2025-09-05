@@ -184,8 +184,8 @@ namespace sp{
 	}
 	void node::outputRice4(node* parent,rangeEncoder& ra, bool m){
 		uint n0 = (int)nc.size(), total = (int)parent->nc.size();
-		int count = 0, s=n0;
-		for(int i = 0; count < s; i++)
+		int i=0, count = 0, s=n0;
+		for(; count < s && s-count!=total-i; i++)
 			if(parent->nc[i] == nc[count]){
 				ra.encode(0,n0,total);
 				count++;
@@ -194,12 +194,14 @@ namespace sp{
 			meargedNumber = m_number++;
 			return;
 		}
-		if(n0=children.size())
-			for(int i = count = 0; i < 256 && count < n0; i++)
+		if(n0=s=children.size()){
+			for(i = count = 0; count < s && s-count!=256-i; i++)
 				if(children[count]->ch == i){
 					ra.encodeshift(0,n0,8);
 					children[count++]->outputRice4(this,ra,false);
 				}else ra.encodeshift(n0,256-n0,8);
+			for(;count<s;)children[count++]->outputRice4(this,ra,false);
+		}
 	}
 	int checkLog2(int n){
 		if(n < 0){
